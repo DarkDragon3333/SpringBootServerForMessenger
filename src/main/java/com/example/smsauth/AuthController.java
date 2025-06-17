@@ -10,8 +10,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -35,11 +37,24 @@ public class AuthController {
 
     @PostConstruct
     public void initFirebase() throws IOException {
-        FileInputStream serviceAccount = new FileInputStream("src/main/resources/mymessenger-73602-firebase-adminsdk-8ogzt-33709015c0.json");
-        FirebaseOptions options = new FirebaseOptions.Builder()
+//        FileInputStream serviceAccount = new FileInputStream("src/main/resources/mymessenger-73602-firebase-adminsdk-8ogzt-33709015c0.json");
+//        FirebaseOptions options = new FirebaseOptions.Builder()
+//                .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+//                .build();
+//        FirebaseApp.initializeApp(options);
+
+        String firebaseKeyJson = System.getenv("FIREBASE_KEY_JSON");
+        if (firebaseKeyJson == null || firebaseKeyJson.isEmpty()) {
+            throw new IllegalStateException("FIREBASE_KEY_JSON is not set");
+        }
+
+        InputStream serviceAccount = new ByteArrayInputStream(firebaseKeyJson.getBytes(StandardCharsets.UTF_8));
+        FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
+
         FirebaseApp.initializeApp(options);
+
     }
 
     @PostMapping("/send-code")
